@@ -349,8 +349,10 @@ public class MainMenu extends ApplicationAdapter {
                 "gdx-vfx - crashinvaders/gdx-vfx\n" +
                 "PieMenu - payne911/PieMenu\n\n" +
                 "-- Assets --\n" +
-                "sscary - The Adventurer\n" +
-                "Game Gland - Zombie Apocalypse";
+                "sscary - The Adventurer (itch.io)\n" +
+                "Game Gland - Zombie Apocalypse (itch.io)\n" +
+                "Castle Dungeon Tileset (OpenGameArt)\n" +
+                "Vary Car Pack (OpenGameArt)";
 
         Label creditsContentLabel = new Label(creditsText, skin);
         creditsContentLabel.setAlignment(Align.center);
