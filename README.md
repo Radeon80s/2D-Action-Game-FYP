@@ -39,6 +39,12 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 ### Weapon Selection (Pie Menu)
 <img src="docs/assets/2-D815573-C8-E1-42-D9-904-A-322-EA4527-FD0.png" width="400"> <img src="docs/assets/1123170-E-0-EFD-464-C-B89-B-57-ADFB879410.png" width="400">
 
+### Cutscene & Dialog
+<img src="docs/assets/AB5-C668-C-AC16-49-D0-A407-151-FD4-FA4-E04.png" width="400">
+
+### Mission Complete
+<img src="docs/assets/67-EAC788-E3-D4-4691-88-C5-3050-B4-FEA0-F4.png" width="400">
+
 ### Game Over Screen
 <img src="docs/assets/52-A31-B12-519-C-4-AD9-A0-B7-AD505-C15-D10-B.png" width="400">
 
