@@ -51,6 +51,7 @@ public class WaveManager {
     private final List<Car> cars;
     private final List<RectangleMapObject> carSpawnPoints;
     private WaveCallback waveCallback;
+    private Timer.Task waveSpawnTask;
 
     public WaveManager(Stage gameStage, World world, Player player, TiledMap map,
                        AssetManager assetManager, CollisionManager collisionManager,
@@ -75,6 +76,11 @@ public class WaveManager {
     }
 
     public void reset() {
+        // Cancel the wave spawn timer to prevent waves after restart
+        if (waveSpawnTask != null) {
+            waveSpawnTask.cancel();
+            waveSpawnTask = null;
+        }
         currentWave = 0;
         activeEnemies = 0;
         cars.clear();
@@ -84,12 +90,13 @@ public class WaveManager {
 
     public void startWaves() {
         spawnNextWave();
-        Timer.schedule(new Timer.Task() {
+        waveSpawnTask = new Timer.Task() {
             @Override
             public void run() {
                 spawnNextWave();
             }
-        }, 10, 10);
+        };
+        Timer.schedule(waveSpawnTask, 10, 10);
     }
 
     public void spawnNextWave() {
@@ -136,8 +143,12 @@ public class WaveManager {
         RunnableAction deactivateCollision = new RunnableAction();
         deactivateCollision.setRunnable(car::deactivateCollision);
 
+        // Capture wave number BEFORE incrementing to avoid race condition
+        final int waveToSpawn = currentWave;
+        currentWave++;
+
         RunnableAction spawnEnemiesAction = new RunnableAction();
-        spawnEnemiesAction.setRunnable(() -> spawnWaveEnemies(spawnPoint, currentWave));
+        spawnEnemiesAction.setRunnable(() -> spawnWaveEnemies(spawnPoint, waveToSpawn));
 
         RunnableAction removeCar = new RunnableAction();
         removeCar.setRunnable(() -> cars.remove(car));
@@ -153,7 +164,6 @@ public class WaveManager {
         sequence.addAction(removeCar);
 
         car.addAction(sequence);
-        currentWave++;
     }
 
     private void spawnWaveEnemies(Rectangle area, int wave) {

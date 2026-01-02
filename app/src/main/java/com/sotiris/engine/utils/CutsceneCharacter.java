@@ -360,19 +360,40 @@ public class CutsceneCharacter extends Actor {
         }
     }
 
+    private Vector2 walkAwayDirection = null;
+
     private void walkAway(float delta) {
-        Vector2 awayDirection = new Vector2(isEndCutscene ? 1 : -1, 0);
-        Vector2 scaledVelocity = new Vector2(awayDirection).scl(160f); // Walk away
+        // Calculate direction to closest map edge on first call
+        if (walkAwayDirection == null) {
+            walkAwayDirection = getDirectionToClosestEdge();
+        }
+
+        Vector2 scaledVelocity = new Vector2(walkAwayDirection).scl(160f);
         velocity.set(scaledVelocity);
-        updateDirection(awayDirection);
+        updateDirection(walkAwayDirection);
 
         Vector2 deltaMovement = new Vector2(velocity).scl(delta);
         position.add(deltaMovement);
         setPosition(position.x, position.y);
 
+        // Done when reaching map edge
         if (position.x < 0 || position.x > mapWidth() || position.y < 0 || position.y > mapHeight()) {
             currentState = CutsceneState.DONE;
         }
+    }
+
+    private Vector2 getDirectionToClosestEdge() {
+        float distToLeft = position.x;
+        float distToRight = mapWidth() - position.x;
+        float distToBottom = position.y;
+        float distToTop = mapHeight() - position.y;
+
+        float minDist = Math.min(Math.min(distToLeft, distToRight), Math.min(distToBottom, distToTop));
+
+        if (minDist == distToLeft) return new Vector2(-1, 0);
+        if (minDist == distToRight) return new Vector2(1, 0);
+        if (minDist == distToBottom) return new Vector2(0, -1);
+        return new Vector2(0, 1);
     }
 
     @Override

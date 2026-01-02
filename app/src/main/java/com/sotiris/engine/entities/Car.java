@@ -188,6 +188,13 @@ public class Car extends Actor {
         stage.addActor(rightDoorImage);
     }
 
+    public void removeFromStage() {
+        // Remove all images from stage to prevent orphaned actors
+        if (carImage != null) carImage.remove();
+        if (leftDoorImage != null) leftDoorImage.remove();
+        if (rightDoorImage != null) rightDoorImage.remove();
+    }
+
     public void addAction(SequenceAction action) {
         carImage.addAction(action);
     }
