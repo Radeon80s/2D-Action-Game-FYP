@@ -8,34 +8,43 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 public class MoveBodyAction extends Action {
     private final Image image;
     private final Body body;
+    private final Vector2 startPosition;
     private final Vector2 targetPosition;
     private final float duration;
     private float time;
+    private boolean initialized = false;
 
-    private final MySpatializedSoundPlayer<Vector2> soundPlayer;  // Reference to sound player
-    private final long engineSoundId;       // The ID of the engine sound
+    private final MySpatializedSoundPlayer<Vector2> soundPlayer;
+    private final long engineSoundId;
     private final boolean engineSoundPlaying;
 
     public MoveBodyAction(Image image, Body body, float x, float y, float duration, MySpatializedSoundPlayer<Vector2> soundPlayer, long engineSoundId) {
         this.image = image;
         this.body = body;
+        this.startPosition = new Vector2();
         this.targetPosition = new Vector2(x, y);
         this.duration = duration;
         this.time = 0;
 
         this.soundPlayer = soundPlayer;
         this.engineSoundId = engineSoundId;
-        this.engineSoundPlaying = true;  // Assuming the engine sound is playing when the action starts
+        this.engineSoundPlaying = true;
     }
 
     @Override
     public boolean act(float delta) {
+        // Capture start position on first frame
+        if (!initialized) {
+            startPosition.set(image.getX(), image.getY());
+            initialized = true;
+        }
+
         time += delta;
         float alpha = Math.min(1, time / duration);
 
-        // Calculate new position
-        float newX = image.getX() + (targetPosition.x - image.getX()) * alpha * 0.1f;  // Adjust speed
-        float newY = image.getY() + (targetPosition.y - image.getY()) * alpha * 0.1f;  // Adjust speed
+        // Linear interpolation from start to target
+        float newX = startPosition.x + (targetPosition.x - startPosition.x) * alpha;
+        float newY = startPosition.y + (targetPosition.y - startPosition.y) * alpha;
 
         // Update image position
         image.setPosition(newX, newY);
@@ -43,9 +52,9 @@ public class MoveBodyAction extends Action {
         // Update body position in Box2D
         body.setTransform(newX + image.getWidth() / 2, newY + image.getHeight() / 2, 0);
 
-        // **Update the engine sound position**
+        // Update the engine sound position
         if (engineSoundPlaying && engineSoundId != -1) {
-            Vector2 soundPosition = new Vector2(newX, newY);  // Use the car's new position for the sound
+            Vector2 soundPosition = new Vector2(newX, newY);
             soundPlayer.updateSoundPosition(engineSoundId, soundPosition);
         }
 

@@ -114,7 +114,7 @@ public class CutsceneManager {
     }
 
     private void startEndCutscene() {
-        Vector2 npcStartPosition = getNPCStartPosition();
+        Vector2 npcStartPosition = getNPCStartPositionFromClosestEdge();
         cutsceneCharacter = new CutsceneCharacter(
                 npcStartPosition.x,
                 npcStartPosition.y,
@@ -136,26 +136,75 @@ public class CutsceneManager {
     }
 
     private Vector2 getNPCStartPosition() {
+        // Spawn from closest map edge to cutscene area center (725, 425)
         Vector2 npcPosition = new Vector2();
-        int side = random.nextInt(4);
-        switch (side) {
-            case 0:
-                npcPosition.x = 0;
-                npcPosition.y = random.nextFloat() * mapHeight();
-                break;
-            case 1:
-                npcPosition.x = mapWidth();
-                npcPosition.y = random.nextFloat() * mapHeight();
-                break;
-            case 2:
-                npcPosition.x = random.nextFloat() * mapWidth();
-                npcPosition.y = mapHeight();
-                break;
-            case 3:
-                npcPosition.x = random.nextFloat() * mapWidth();
-                npcPosition.y = 0;
-                break;
+        float cutsceneCenterX = 725f;
+        float cutsceneCenterY = 425f;
+
+        float distToLeft = cutsceneCenterX;
+        float distToRight = mapWidth() - cutsceneCenterX;
+        float distToBottom = cutsceneCenterY;
+        float distToTop = mapHeight() - cutsceneCenterY;
+
+        float minDist = Math.min(Math.min(distToLeft, distToRight), Math.min(distToBottom, distToTop));
+
+        if (minDist == distToLeft) {
+            // Spawn from left edge
+            npcPosition.x = -50f;
+            npcPosition.y = cutsceneCenterY + (random.nextFloat() - 0.5f) * 100f;
+        } else if (minDist == distToRight) {
+            // Spawn from right edge
+            npcPosition.x = mapWidth() + 50f;
+            npcPosition.y = cutsceneCenterY + (random.nextFloat() - 0.5f) * 100f;
+        } else if (minDist == distToBottom) {
+            // Spawn from bottom edge
+            npcPosition.x = cutsceneCenterX + (random.nextFloat() - 0.5f) * 100f;
+            npcPosition.y = -50f;
+        } else {
+            // Spawn from top edge
+            npcPosition.x = cutsceneCenterX + (random.nextFloat() - 0.5f) * 100f;
+            npcPosition.y = mapHeight() + 50f;
         }
+        return npcPosition;
+    }
+
+    /**
+     * Gets NPC spawn position from the closest map edge to the player.
+     * Used for end cutscene so NPC arrives quickly.
+     */
+    private Vector2 getNPCStartPositionFromClosestEdge() {
+        Vector2 playerPos = player.getPosition();
+        Vector2 npcPosition = new Vector2();
+
+        float distToLeft = playerPos.x;
+        float distToRight = mapWidth() - playerPos.x;
+        float distToBottom = playerPos.y;
+        float distToTop = mapHeight() - playerPos.y;
+
+        float minDist = Math.min(Math.min(distToLeft, distToRight), Math.min(distToBottom, distToTop));
+
+        if (minDist == distToLeft) {
+            // Spawn from left edge
+            npcPosition.x = -50f;
+            npcPosition.y = playerPos.y + (random.nextFloat() - 0.5f) * 100f;
+        } else if (minDist == distToRight) {
+            // Spawn from right edge
+            npcPosition.x = mapWidth() + 50f;
+            npcPosition.y = playerPos.y + (random.nextFloat() - 0.5f) * 100f;
+        } else if (minDist == distToBottom) {
+            // Spawn from bottom edge
+            npcPosition.x = playerPos.x + (random.nextFloat() - 0.5f) * 100f;
+            npcPosition.y = -50f;
+        } else {
+            // Spawn from top edge
+            npcPosition.x = playerPos.x + (random.nextFloat() - 0.5f) * 100f;
+            npcPosition.y = mapHeight() + 50f;
+        }
+
+        // Clamp x/y to stay within reasonable bounds
+        npcPosition.x = Math.max(-50f, Math.min(npcPosition.x, mapWidth() + 50f));
+        npcPosition.y = Math.max(-50f, Math.min(npcPosition.y, mapHeight() + 50f));
+
         return npcPosition;
     }
 
