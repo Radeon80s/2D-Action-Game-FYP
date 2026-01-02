@@ -298,8 +298,11 @@ private static final int POSITION_ITERATIONS = 2;
 - [PieMenu](https://github.com/payne911/PieMenu) - Radial menu widget for Scene2D
 
 ### Assets
-- Character sprites from [itch.io](https://itch.io) open game art
-- Tileset designed using [Tiled Map Editor](https://www.mapeditor.org/)
+- **Player Sprites**: [sscary](https://sscary.itch.io/) - [The Adventurer Male](https://sscary.itch.io/the-adventurer-male) & [The Adventurer Female](https://sscary.itch.io/the-adventurer-female)
+- **Enemy Sprites**: [Game Gland](https://gamegland.itch.io/) - [Zombie Apocalypse Character Spritesheet](https://gamegland.itch.io/zombie-apocalypse-character-spritesheet)
+- **Tileset**: [OpenGameArt](https://opengameart.org/) - [Castle Dungeon](https://opengameart.org/content/castle-dungeon) (partial use, custom map design)
+- **Vehicles**: [OpenGameArt](https://opengameart.org/) - [Vary Car Pack 1](https://opengameart.org/content/vary-car-pack-1) (modified colors)
+- **Map Design**: Created using [Tiled Map Editor](https://www.mapeditor.org/)
 
 ---
 
