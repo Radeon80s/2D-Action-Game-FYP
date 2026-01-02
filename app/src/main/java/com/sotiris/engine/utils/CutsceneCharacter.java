@@ -154,7 +154,7 @@ public class CutsceneCharacter extends Actor {
 
     private void moveToPlayer(float delta) {
         Vector2 toPlayer = player.getPosition().cpy().sub(position).nor();
-        Vector2 scaledVelocity = new Vector2(toPlayer).scl(150f); // Create a new scaled vector
+        Vector2 scaledVelocity = new Vector2(toPlayer).scl(200f); // Walk to player
         velocity.set(scaledVelocity);
         updateDirection(toPlayer); // Use the original direction vector
 
@@ -362,7 +362,7 @@ public class CutsceneCharacter extends Actor {
 
     private void walkAway(float delta) {
         Vector2 awayDirection = new Vector2(isEndCutscene ? 1 : -1, 0);
-        Vector2 scaledVelocity = new Vector2(awayDirection).scl(100f); // Create a new scaled vector
+        Vector2 scaledVelocity = new Vector2(awayDirection).scl(160f); // Walk away
         velocity.set(scaledVelocity);
         updateDirection(awayDirection);
 

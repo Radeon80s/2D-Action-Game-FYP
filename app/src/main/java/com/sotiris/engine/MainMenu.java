@@ -341,9 +341,16 @@ public class MainMenu extends ApplicationAdapter {
 
         String creditsText = "Developed by Sotiris Konstantinou\n\n" +
                 "University of Nicosia\n" +
-                "Final Year Project 2024-2025\n\n" +
+                "Final Year Project 2025-2026\n\n" +
                 "Supervisor: Prof. C. Mavromoustakis\n\n" +
-                "Built with LibGDX Framework";
+                "-- Libraries --\n" +
+                "LibGDX - libgdx/libgdx\n" +
+                "gdx-sfx - spookygames/gdx-sfx\n" +
+                "gdx-vfx - crashinvaders/gdx-vfx\n" +
+                "PieMenu - payne911/PieMenu\n\n" +
+                "-- Assets --\n" +
+                "sscary - The Adventurer\n" +
+                "Game Gland - Zombie Apocalypse";
 
         Label creditsContentLabel = new Label(creditsText, skin);
         creditsContentLabel.setAlignment(Align.center);
