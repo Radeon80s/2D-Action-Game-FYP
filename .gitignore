@@ -105,13 +105,10 @@ desktop.ini
 test-results/
 testDebug/
 
-# Screenshots folder (scrcpy captures)
-scr/
-
 # Scrcpy tool
 scrcpy-win64-v3.3.3/
 
-# Documents (dissertation, presentations - do not upload)
+# Documents
 *.docx
 *.doc
 *.pptx
