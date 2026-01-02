@@ -16,7 +16,6 @@ import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -43,11 +42,10 @@ import com.sotiris.engine.entities.Enemy;
 import com.sotiris.engine.entities.Player;
 import com.sotiris.engine.utils.CollisionManager;
 import com.sotiris.engine.utils.CutsceneCharacter;
+import com.sotiris.engine.utils.WaveManager;
 import com.sotiris.engine.ui.Joystick;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import com.badlogic.gdx.assets.AssetManager;
@@ -91,8 +89,6 @@ public class Demo extends ApplicationAdapter {
     private TextButton muteButton;
     private Player player;
     private float savedVolume = 1.0f;  // Default matches soundPlayer initial volume
-    private List<Car> cars;
-    private List<RectangleMapObject> carSpawnPoints;
     private Random random;
     private OrthographicCamera camera;
     private SpriteBatch batch;
@@ -109,9 +105,7 @@ public class Demo extends ApplicationAdapter {
     private static final float WEAPON_SCALE = 0.2f;
     private boolean isShooting = false;
     private CollisionManager collisionManager;
-    private int currentWave = 0;
-    private final int[] waveEnemies = {5, 4, 1, 2, 1, 4, 5};
-    private int activeEnemies = 0;
+    private WaveManager waveManager;
     private World world;
     private final Rectangle cutsceneRectangle = new Rectangle(600, 300, 250, 250);
     private boolean isTransitioning = false;
@@ -185,9 +179,12 @@ public class Demo extends ApplicationAdapter {
         initializeShootButton();
         rifleTexture = getTexture("rifle.png");
         shapeRenderer = new ShapeRenderer();
-        carSpawnPoints = new ArrayList<>();
-        cars = new ArrayList<>();
-        extractCarSpawnPoints();
+
+        // Initialize WaveManager
+        waveManager = new WaveManager(gameStage, world, player, map, assetManager,
+                collisionManager, soundPlayer, bulletPool);
+        waveManager.setWaveCallback(this::triggerCutsceneEnd);
+
         definePieMenuZones();
         initializeVisualEffects();
         initializeSpatializer();
@@ -197,8 +194,6 @@ public class Demo extends ApplicationAdapter {
         initializeMissionCompleteUI();
         initializeSettingsUI();
         currentGameState = GameState.PLAYING;
-        currentWave = 0;
-        activeEnemies = 0;
 
 
     }
@@ -574,18 +569,6 @@ public class Demo extends ApplicationAdapter {
         }
     }
 
-    private void extractCarSpawnPoints() {
-        MapLayer carSpawnLayer = map.getLayers().get("CarSpawnPoints");
-        if (carSpawnLayer != null) {
-            for (MapObject object : carSpawnLayer.getObjects()) {
-                if (object instanceof RectangleMapObject) {
-                    RectangleMapObject rectObject = (RectangleMapObject) object;
-                    carSpawnPoints.add(rectObject);
-                }
-            }
-        }
-    }
-
     private Vector2 getRandomSpawnPosition(float playerWidth, float playerHeight) {
         Vector2 spawnPos = new Vector2();
         boolean validPosition = false;
@@ -632,166 +615,6 @@ public class Demo extends ApplicationAdapter {
         return map.getProperties().get("height", Integer.class) * map.getProperties().get("tileheight", Integer.class);
     }
 
-    private void spawnNextWave() {
-        if(player.isDead()){
-            return;
-        }
-        if (currentWave >= waveEnemies.length) {
-            return;
-        }
-        if (carSpawnPoints.isEmpty()) {
-            extractCarSpawnPoints();
-        }
-        RectangleMapObject spawnPointObject = carSpawnPoints.remove(random.nextInt(carSpawnPoints.size()));
-        Rectangle spawnPoint = spawnPointObject.getRectangle();
-        Car car = new Car(
-                world,
-                assetManager,
-                soundPlayer);
-        cars.add(car);
-        float offScreenY = mapHeight();
-        car.setPosition(spawnPoint.x, offScreenY);
-
-        car.addToStage(gameStage);
-        car.startSoundEngine();
-        RunnableAction activateCollision = new RunnableAction();
-        activateCollision.setRunnable(car::activateCollision);
-        RunnableAction openDoorsAndAddCollision = new RunnableAction();
-        openDoorsAndAddCollision.setRunnable(() -> {
-            car.openDoors();
-            Rectangle collision = spawnPointObject.getRectangle();
-            if (!collisionManager.isPlayerInsideRectangle(player, collision)) {
-                collisionManager.addCollisionRectangle(collision);
-            } else {
-                boolean change = !collisionManager.isPlayerInsideRectangle(player, collision);
-                int attempts = 0;
-                while (!change && attempts < 5) {
-                    change = !collisionManager.isPlayerInsideRectangle(player, collision);
-                    attempts++;
-                    if (change) {
-                        collisionManager.addCollisionRectangle(collision);
-                    }
-                }
-            }
-        });
-        RunnableAction deactivateCollision = new RunnableAction();
-        deactivateCollision.setRunnable(car::deactivateCollision);
-        RunnableAction spawnEnemiesAction = new RunnableAction();
-        spawnEnemiesAction.setRunnable(() -> spawnWaveEnemies(spawnPoint, currentWave));
-        RunnableAction removeCar = new RunnableAction();
-        removeCar.setRunnable(() -> cars.remove(car));
-        SequenceAction sequence = new SequenceAction();
-        sequence.addAction(activateCollision);
-        sequence.addAction(Actions.run(() -> car.moveTo(spawnPoint.x, spawnPoint.y, 2f)));
-        sequence.addAction(Actions.delay(2.1f));
-        sequence.addAction(openDoorsAndAddCollision);
-        sequence.addAction(deactivateCollision);
-        sequence.addAction(spawnEnemiesAction);
-        sequence.addAction(Actions.delay(0.5f));
-        sequence.addAction(removeCar);
-        car.addAction(sequence);
-        currentWave++;
-    }
-
-    private void spawnWaveEnemies(Rectangle area, int wave) {
-        if (wave >= waveEnemies.length) return;
-        int numEnemies = waveEnemies[wave];
-        float carX = area.x;
-        float carY = area.y;
-        float initialGap = 40f;
-        float offsetY = 10f;
-        float mapWidth = mapWidth();
-        float mapHeight = mapHeight();
-
-        Array<Vector2> spawnedPositions = new Array<>();
-
-        for (int i = 0; i < numEnemies; i++) {
-            Vector2 spawnPos = findValidSpawnPosition(carX, carY, initialGap, offsetY, spawnedPositions);
-
-            if (spawnPos != null) {
-                spawnEnemy(spawnPos);
-                spawnedPositions.add(spawnPos);
-            } else {
-
-                spawnPos = getRandomSpawnPosition();
-                spawnEnemy(spawnPos);
-                spawnedPositions.add(spawnPos);
-            }
-        }
-    }
-
-    private Vector2 findValidSpawnPosition(float carX, float carY, float initialGap, float offsetY, Array<Vector2> spawnedPositions) {
-        float gap = initialGap;
-        int maxAttempts = 50;
-        float mapWidth = mapWidth();
-        float mapHeight = mapHeight();
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            for (int side = -1; side <= 1; side += 2) {
-                Vector2 spawnPos = new Vector2(
-                        carX + side * gap * (attempt + 1),
-                        carY + offsetY + MathUtils.random(-20, 20)
-                );
-
-                spawnPos.x = MathUtils.clamp(spawnPos.x, 20, mapWidth - 20);
-                spawnPos.y = MathUtils.clamp(spawnPos.y, 20, mapHeight - 20);
-
-                if (isValidPosition(spawnPos, spawnedPositions)) {
-                    return spawnPos;
-                }
-            }
-
-            gap *= 0.9f;
-        }
-
-        return null;
-    }
-
-    private boolean isValidPosition(Vector2 pos, Array<Vector2> spawnedPositions) {
-        Rectangle spawnRect = new Rectangle(pos.x - 10, pos.y - 10, 20, 20);
-
-        for (Rectangle collision : collisionManager.getCollisionRectangles()) {
-            if (collision.overlaps(spawnRect)) {
-                return false;
-            }
-        }
-
-        for (Vector2 otherPos : spawnedPositions) {
-            if (pos.dst(otherPos) < 30) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private Vector2 getRandomSpawnPosition() {
-        float mapWidth = mapWidth();
-        float mapHeight = mapHeight();
-        Vector2 pos = new Vector2();
-        int maxAttempts = 50;
-
-        for (int i = 0; i < maxAttempts; i++) {
-            pos.set(MathUtils.random(20, mapWidth - 20), MathUtils.random(20, mapHeight - 20));
-            if (isValidPosition(pos, new Array<>())) {
-                return pos;
-            }
-        }
-
-        return pos;
-    }
-
-    private void spawnEnemy(Vector2 spawnPos) {
-        Enemy enemy = new Enemy(assetManager, spawnPos.x, spawnPos.y, player, collisionManager, world, bulletPool);
-        enemy.setOnDeath(() -> {
-            activeEnemies--;
-            if (activeEnemies == 0 && currentWave >= waveEnemies.length) {
-                triggerCutsceneEnd();
-            }
-        });
-        gameStage.addActor(enemy);
-        activeEnemies++;
-    }
     private void triggerCutsceneEnd() {
         if (currentGameState == GameState.CUTSCENE_END || isTransitioning) return;
         isTransitioning = true;
@@ -893,13 +716,7 @@ public class Demo extends ApplicationAdapter {
     }
 
     private void spawnFirstWave() {
-        spawnNextWave();
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                spawnNextWave();
-            }
-        }, 10, 10);
+        waveManager.startWaves();
     }
 
     private void triggerMissionCompleteSequence() {
@@ -958,13 +775,9 @@ public class Demo extends ApplicationAdapter {
     }
 
     private void resetGameWorld() {
-        currentWave = 0;
-        activeEnemies = 0;
-        cars.clear();
+        waveManager.reset();
         clearDynamicEntities();
         addStaticCars();
-        carSpawnPoints.clear();
-        extractCarSpawnPoints();
         initializeGameOverUI();
         initializeMissionCompleteUI();
         initializeSettingsUI();
@@ -981,30 +794,13 @@ public class Demo extends ApplicationAdapter {
     }
 
     private void clearDynamicEntities() {
+        waveManager.stopAllCarSounds();
         for (Actor actor : new Array<>(gameStage.getActors())) {
-            if(actor instanceof Car){
-                ((Car) actor).stopSoundEngine();
-            }
             if (actor instanceof Player || actor instanceof Enemy || actor instanceof Car) {
                 actor.remove();
             }
         }
         collisionManager.clearCollisionRectangles();
-    }
-
-    private void renderCarSpawnPoints() {
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.RED);
-
-        if (carSpawnPoints != null) {
-            for (RectangleMapObject re : carSpawnPoints) {
-                Rectangle rect = re.getRectangle();
-                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-            }
-        }
-
-        shapeRenderer.end();
     }
 
     private static final float TIME_STEP = 1/60f;
@@ -1070,8 +866,6 @@ public class Demo extends ApplicationAdapter {
         mapRenderer.render();
         shapeRenderer.setProjectionMatrix(camera.combined);
 
-        renderCarSpawnPoints();
-
         handleInput();
         gameStage.act(delta);
         gameStage.draw();
@@ -1119,8 +913,7 @@ public class Demo extends ApplicationAdapter {
         drawWeaponIcon();
 
         batch.end();
-        for (Car car : cars) car.checkCollisionWithPlayer(player);
-
+        waveManager.checkCarCollisions();
     }
 
     private void handleInput() {
