@@ -24,9 +24,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.actions.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
@@ -41,8 +39,9 @@ import com.sotiris.engine.entities.Car;
 import com.sotiris.engine.entities.Enemy;
 import com.sotiris.engine.entities.Player;
 import com.sotiris.engine.utils.CollisionManager;
-import com.sotiris.engine.utils.CutsceneCharacter;
+import com.sotiris.engine.utils.CutsceneManager;
 import com.sotiris.engine.utils.WaveManager;
+import com.sotiris.engine.ui.GameUIBuilder;
 import com.sotiris.engine.ui.Joystick;
 
 import java.util.HashMap;
@@ -63,9 +62,8 @@ import games.spooky.gdx.sfx.SfxSoundLoader;
 import games.spooky.gdx.sfx.spatial.SomeSoundSpatializer2;
 
 public class Demo extends ApplicationAdapter {
-    private CutsceneCharacter cutsceneCharacter;
-    private float targetZoom = 1.0f;
-    private boolean followCutsceneCharacter = false;
+    private CutsceneManager cutsceneManager;
+    private GameUIBuilder uiBuilder;
     private BulletPool bulletPool;
     private enum GameState {
         CUTSCENE_START,
@@ -84,11 +82,7 @@ public class Demo extends ApplicationAdapter {
     private Skin skin;
     private Stage gameStage, uiStage, gameOverStage, missionCompleteStage, settingsStage;
     private PieMenuManager pieMenuManager;
-    private Slider volumeSlider;
-    private Slider settingsVolumeSlider;
-    private TextButton muteButton;
     private Player player;
-    private float savedVolume = 1.0f;  // Default matches soundPlayer initial volume
     private Random random;
     private OrthographicCamera camera;
     private SpriteBatch batch;
@@ -108,8 +102,6 @@ public class Demo extends ApplicationAdapter {
     private WaveManager waveManager;
     private World world;
     private final Rectangle cutsceneRectangle = new Rectangle(600, 300, 250, 250);
-    private boolean isTransitioning = false;
-    private boolean cutsceneTriggered = false;
     private static final float SPAWN_PADDING = 100f;
     private final Map<String, Texture> textureCache = new HashMap<>();
     float delta;
@@ -188,11 +180,56 @@ public class Demo extends ApplicationAdapter {
         definePieMenuZones();
         initializeVisualEffects();
         initializeSpatializer();
-        initializeVolumeSlider();
-        initializeMuteButton();
-        initializeGameOverUI();
-        initializeMissionCompleteUI();
-        initializeSettingsUI();
+
+        // Initialize CutsceneManager
+        cutsceneManager = new CutsceneManager(gameStage, uiStage, player, skin, map, assetManager, collisionManager);
+        cutsceneManager.setCallback(new CutsceneManager.CutsceneCallback() {
+            @Override
+            public void onStartCutsceneComplete() {
+                currentGameState = GameState.PLAYING;
+                cutsceneManager.onStartCutsceneFinished();
+                setInputProcessing();
+                spawnFirstWave();
+                pieMenuManager.enableInput();
+            }
+
+            @Override
+            public void onEndCutsceneComplete() {
+                triggerMissionCompleteSequence();
+            }
+        });
+
+        // Initialize UIBuilder
+        uiBuilder = new GameUIBuilder(skin, soundPlayer);
+        uiBuilder.setCallback(new GameUIBuilder.UICallback() {
+            @Override
+            public void onRestartMission() { restartMission(); }
+
+            @Override
+            public void onExitGame() { Gdx.app.exit(); }
+
+            @Override
+            public void onBackToMain() {
+                notifyAndroidLauncher();
+                Gdx.app.exit();
+            }
+
+            @Override
+            public void onBackFromSettings() {
+                currentGameState = GameState.PLAYING;
+                setInputProcessing();
+            }
+
+            @Override
+            public void onVolumeChanged(float volume) { }
+        });
+
+        uiBuilder.buildVolumeSlider(uiStage);
+        uiBuilder.buildMuteButton(uiStage);
+        uiBuilder.buildGameOverUI(gameOverStage);
+        uiBuilder.buildMissionCompleteUI(missionCompleteStage);
+        uiBuilder.buildSettingsUI(settingsStage);
+
         currentGameState = GameState.PLAYING;
 
 
@@ -400,152 +437,6 @@ public class Demo extends ApplicationAdapter {
         soundPlayer.setSpatializer(spatializer);
     }
 
-    private void initializeVolumeSlider() {
-        volumeSlider = new Slider(0f, 1f, 0.1f, false, skin);
-        volumeSlider.setValue(soundPlayer.getVolume());
-        volumeSlider.setPosition(500, 50);
-        volumeSlider.setSize(150, 35);
-        volumeSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                float volume = volumeSlider.getValue();
-                if (soundPlayer != null) {
-                    soundPlayer.setVolume(volume);
-                    settingsVolumeSlider.setValue(volume);
-
-                    // Update mute button text based on slider position
-                    if (volume > 0f) {
-                        muteButton.setText("Mute");
-                        savedVolume = volume;
-                    } else {
-                        muteButton.setText("Unmute");
-                    }
-                }
-            }
-        });
-        uiStage.addActor(volumeSlider);
-    }
-
-    private void initializeMuteButton() {
-        muteButton = new TextButton("Mute", skin);
-        muteButton.setPosition(400, 50);
-        muteButton.setSize(100, 30);
-        muteButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                if (soundPlayer != null) {
-                    if (soundPlayer.getVolume() > 0f) {
-                        // Muting: Save current volume first
-                        savedVolume = soundPlayer.getVolume();
-                        soundPlayer.setVolume(0f);
-                        volumeSlider.setValue(0f);
-                        settingsVolumeSlider.setValue(0f);
-                        muteButton.setText("Unmute");
-                    } else {
-                        // Unmuting: Restore saved volume
-                        soundPlayer.setVolume(savedVolume);
-                        volumeSlider.setValue(savedVolume);
-                        settingsVolumeSlider.setValue(savedVolume);
-                        muteButton.setText("Mute");
-                    }
-                }
-            }
-        });
-        uiStage.addActor(muteButton);
-    }
-
-    private void initializeGameOverUI() {
-        if (gameOverStage.getActors().size > 0) return;
-        Table table = new Table();
-        table.setFillParent(true);
-        gameOverStage.addActor(table);
-        Label gameOverLabel = new Label("YOU DIED", skin);
-        gameOverLabel.setFontScale(2f);
-        gameOverLabel.setColor(Color.RED);
-        TextButton restartButton = new TextButton("Restart Mission", skin);
-        TextButton exitButton = new TextButton("Exit Game", skin);
-        restartButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                restartMission();
-            }
-        });
-        exitButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
-            }
-        });
-        table.add(gameOverLabel).padBottom(20);
-        table.row();
-        table.add(restartButton).width(200).height(50).padBottom(10);
-        table.row();
-        table.add(exitButton).width(200).height(50);
-    }
-
-    private void initializeMissionCompleteUI() {
-        if (missionCompleteStage.getActors().size > 0) return;
-        Table table = new Table();
-        table.setFillParent(true);
-        missionCompleteStage.addActor(table);
-        Label missionCompleteLabel = new Label("Demo Complete", skin);
-        Label label2 = new Label("You win", skin);
-        missionCompleteLabel.setFontScale(2f);
-        missionCompleteLabel.setColor(Color.GREEN);
-        TextButton exitButton = new TextButton("Back to Main", skin);
-
-        exitButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                notifyAndroidLauncher();
-                Gdx.app.exit();
-            }
-        });
-
-        table.add(missionCompleteLabel).padBottom(20);
-        table.row();
-        table.add(label2).width(100).height(40).padBottom(10);
-        table.row();
-        table.add(exitButton).width(200).height(50);
-    }
-
-    private void initializeSettingsUI() {
-        if (settingsStage.getActors().size > 0) return;
-        Table table = new Table();
-        table.setFillParent(true);
-        settingsStage.addActor(table);
-        Label settingsLabel = new Label("Settings", skin);
-        settingsLabel.setFontScale(2f);
-        settingsLabel.setColor(Color.WHITE);
-        settingsVolumeSlider = new Slider(0f, 1f, 0.1f, false, skin);
-        settingsVolumeSlider.setValue(soundPlayer.getVolume());
-        settingsVolumeSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                float volume = settingsVolumeSlider.getValue();
-                if (soundPlayer != null) {
-                    soundPlayer.setVolume(volume);
-                    volumeSlider.setValue(volume);
-                }
-            }
-        });
-        TextButton backButton = new TextButton("Back", skin);
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                currentGameState = GameState.PLAYING;
-                setInputProcessing();
-            }
-        });
-        table.add(settingsLabel).padBottom(20);
-        table.row();
-        table.add(new Label("Volume", skin)).padBottom(10);
-        table.row();
-        table.add(settingsVolumeSlider).width(300).padBottom(20);
-        table.row();
-        table.add(backButton).width(200).height(50);
-    }
-
     private void addStaticCars() {
         MapLayer carStaticLayer = map.getLayers().get("CarStaticPoints");
         if (carStaticLayer != null) {
@@ -616,103 +507,22 @@ public class Demo extends ApplicationAdapter {
     }
 
     private void triggerCutsceneEnd() {
-        if (currentGameState == GameState.CUTSCENE_END || isTransitioning) return;
-        isTransitioning = true;
+        // Multiple guards to prevent retriggering
+        if (currentGameState != GameState.PLAYING) return;
+        if (cutsceneManager.isEndCutsceneTriggered()) return;
+
         currentGameState = GameState.CUTSCENE_END;
-        player.setVelocity(new Vector2(0, 0));
-
-        startEndCutscene();
-        isTransitioning = false;
+        cutsceneManager.triggerEndCutscene();
     }
 
-    private void startEndCutscene() {
-        Vector2 npcStartPosition = getNPCStartPosition();
-        cutsceneCharacter = new CutsceneCharacter(
-                npcStartPosition.x,
-                npcStartPosition.y,
-                player,
-                skin,
-                uiStage,
-                collisionManager,
-                true,
-                () -> {
-
-                    if (currentGameState == GameState.CUTSCENE_END) {
-                        triggerMissionCompleteSequence();
-                    }
-                },
-                map,
-                assetManager,
-                "mission_1"
-        );
-        gameStage.addActor(cutsceneCharacter);
-
-    }
     private void triggerCutsceneStart() {
-        if (cutsceneTriggered || currentGameState == GameState.CUTSCENE_START || isTransitioning) return;
-        isTransitioning = true;
-        player.setVelocity(new Vector2(0, 0));
-        startCutscene();
-        isTransitioning = false;
-        cutsceneTriggered = true;
-    }
+        // Multiple guards to prevent retriggering
+        if (currentGameState != GameState.PLAYING) return;
+        if (cutsceneManager.isStartCutsceneTriggered()) return;
 
-    private void startCutscene() {
-        Vector2 npcStartPosition = getNPCStartPosition();
-        cutsceneCharacter = new CutsceneCharacter(
-                npcStartPosition.x,
-                npcStartPosition.y,
-                player,
-                skin,
-                uiStage,
-                collisionManager,
-                false,
-                () -> {
-
-                    if (currentGameState == GameState.CUTSCENE_START) {
-                        currentGameState = GameState.PLAYING;
-                        followCutsceneCharacter = false;
-                        targetZoom = 1.0f;
-                        setInputProcessing();
-                    }
-
-                    spawnFirstWave();
-                    pieMenuManager.enableInput();
-                },
-                map,
-                assetManager,
-                "mission_1"
-        );
-        boolean isCutsceneActive = true;
-        followCutsceneCharacter = true;
-        targetZoom = 0.5f;
         currentGameState = GameState.CUTSCENE_START;
         pieMenuManager.disableInput();
-        gameStage.addActor(cutsceneCharacter);
-    }
-
-    private Vector2 getNPCStartPosition() {
-        Vector2 npcPosition = new Vector2();
-        int side = random.nextInt(4);
-        switch (side) {
-            case 0:
-                npcPosition.x = 0;
-                npcPosition.y = random.nextFloat() * mapHeight();
-                break;
-            case 1:
-                npcPosition.x = mapWidth();
-                npcPosition.y = random.nextFloat() * mapHeight();
-                break;
-            case 2:
-                npcPosition.x = random.nextFloat() * mapWidth();
-                npcPosition.y = mapHeight();
-                break;
-            case 3:
-                npcPosition.x = random.nextFloat() * mapWidth();
-                npcPosition.y = 0;
-                break;
-        }
-        return npcPosition;
+        cutsceneManager.triggerStartCutscene();
     }
 
     private void spawnFirstWave() {
@@ -720,27 +530,21 @@ public class Demo extends ApplicationAdapter {
     }
 
     private void triggerMissionCompleteSequence() {
-        if (currentGameState == GameState.MISSION_COMPLETE || isTransitioning) return;
-        isTransitioning = true;
+        if (currentGameState == GameState.MISSION_COMPLETE) return;
         currentGameState = GameState.MISSION_COMPLETE;
         Gdx.input.setInputProcessor(missionCompleteStage);
-        isTransitioning = false;
     }
 
     private void triggerGameOverSequence() {
-        if (currentGameState == GameState.GAME_OVER || isTransitioning) return;
-        isTransitioning = true;
+        if (currentGameState == GameState.GAME_OVER) return;
         currentGameState = GameState.GAME_OVER;
         Gdx.input.setInputProcessor(gameOverStage);
-        isTransitioning = false;
     }
 
     private void triggerSettingsSequence() {
-        if (currentGameState == GameState.SETTINGS || isTransitioning) return;
-        isTransitioning = true;
+        if (currentGameState == GameState.SETTINGS) return;
         currentGameState = GameState.SETTINGS;
         Gdx.input.setInputProcessor(settingsStage);
-        isTransitioning = false;
     }
 
     private void restartMission() {
@@ -776,11 +580,12 @@ public class Demo extends ApplicationAdapter {
 
     private void resetGameWorld() {
         waveManager.reset();
+        cutsceneManager.reset();
         clearDynamicEntities();
         addStaticCars();
-        initializeGameOverUI();
-        initializeMissionCompleteUI();
-        initializeSettingsUI();
+        uiBuilder.buildGameOverUI(gameOverStage);
+        uiBuilder.buildMissionCompleteUI(missionCompleteStage);
+        uiBuilder.buildSettingsUI(settingsStage);
     }
 
     private void resetPlayer() {
@@ -820,35 +625,19 @@ public class Demo extends ApplicationAdapter {
 
         switch (currentGameState) {
             case CUTSCENE_START:
-                if (followCutsceneCharacter && !cutsceneCharacter.isWalkingAway()) {
-                    float lerp = 0.1f;
-                    camera.position.x += (cutsceneCharacter.getX() - camera.position.x) * lerp;
-                    camera.position.y += (cutsceneCharacter.getY() - camera.position.y) * lerp;
-                } else {
-                    float playerLerp = 0.1f;
-                    camera.position.x += (player.getX() - camera.position.x) * playerLerp;
-                    camera.position.y += (player.getY() - camera.position.y) * playerLerp;
-                    camera.zoom = targetZoom;
-                    camera.update();
-                }
-                if (Math.abs(camera.zoom - targetZoom) > 0.01f) {
-                    camera.zoom += (targetZoom - camera.zoom) * 0.05f;
-                } else {
-                    camera.zoom = targetZoom;
-                }
-
-                camera.update();
+            case CUTSCENE_END:
+                cutsceneManager.updateCamera(camera);
                 break;
             case PLAYING:
-
                 if (player != null && player.isDead()) triggerGameOverSequence();
 
                 Rectangle playerBounds = new Rectangle(player.getX(), player.getY(), player.getWidth(), player.getHeight());
                 if (cutsceneRectangle.contains(playerBounds)) triggerCutsceneStart();
+
                 float playerLerp = 0.1f;
                 camera.position.x += (player.getX() - camera.position.x) * playerLerp;
                 camera.position.y += (player.getY() - camera.position.y) * playerLerp;
-                camera.zoom = targetZoom;
+                camera.zoom = 1.0f;
                 camera.update();
                 break;
             case GAME_OVER:

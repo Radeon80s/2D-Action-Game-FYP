@@ -28,6 +28,22 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 
 ---
 
+## Screenshots
+
+### Main Menu
+<img src="docs/assets/EE44-E933-0-E5-A-4-BD0-84-A0-A9-D1-F1125492.png" width="400">
+
+### Gameplay & Combat
+<img src="docs/assets/E533-F7-B6-71-AF-4-E65-8600-252-ACFE58902.png" width="400">
+
+### Weapon Selection (Pie Menu)
+<img src="docs/assets/2-D815573-C8-E1-42-D9-904-A-322-EA4527-FD0.png" width="400"> <img src="docs/assets/1123170-E-0-EFD-464-C-B89-B-57-ADFB879410.png" width="400">
+
+### Game Over Screen
+<img src="docs/assets/52-A31-B12-519-C-4-AD9-A0-B7-AD505-C15-D10-B.png" width="400">
+
+---
+
 ## Overview
 
 This project is a 2D top-down action game developed for Android devices using the LibGDX framework. The player navigates through a tiled map environment while combating waves of enemies using various weapons including melee and ranged options.
@@ -103,11 +119,14 @@ GameEngine/
 │   │   │
 │   │   ├── ui/
 │   │   │   ├── Joystick.java            # Virtual joystick touch control
-│   │   │   └── PieMenuManager.java      # Radial weapon selection menu
+│   │   │   ├── PieMenuManager.java      # Radial weapon selection menu
+│   │   │   └── GameUIBuilder.java       # UI screen builder (GameOver, Settings, etc.)
 │   │   │
 │   │   └── utils/
 │   │       ├── CollisionManager.java    # Tiled map collision handling
 │   │       ├── CutsceneCharacter.java   # Cutscene NPC with dialog
+│   │       ├── CutsceneManager.java     # Cutscene orchestration & camera control
+│   │       ├── WaveManager.java         # Enemy wave spawning & car arrivals
 │   │       ├── MoveBodyAction.java      # Custom LibGDX action for physics
 │   │       └── MySpatializedSoundPlayer.java  # Extended spatial audio
 │   │
@@ -133,8 +152,10 @@ GameEngine/
 |---------|----------------|
 | **Finite State Machine** | Player and Enemy states (IDLE, WALK, ATTACK, DEATH) |
 | **Object Pool** | BulletPool for efficient projectile management |
-| **Observer/Callback** | Death events, weapon changes, mission completion |
+| **Observer/Callback** | WaveManager, CutsceneManager, GameUIBuilder callbacks |
 | **Actor Pattern** | All entities extend LibGDX Scene2D Actor class |
+| **Manager Pattern** | WaveManager, CutsceneManager for separation of concerns |
+| **Builder Pattern** | GameUIBuilder for UI screen construction |
 
 ### Game Loop Architecture
 ```
@@ -287,7 +308,7 @@ private static final int POSITION_ITERATIONS = 2;
 **Sotiris Konstantinou**
 
 University of Nicosia
-Final Year Project - 2024/2025
+Final Year Project - 2025/2026
 
 ---
 
