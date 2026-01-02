@@ -205,7 +205,7 @@ IDLE → WALK (chase player) → ATTACK
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/[username]/GameEngine.git
+gh repo clone Radeon80s/2D-Action-Game-FYP
 ```
 
 2. Open the project in Android Studio
