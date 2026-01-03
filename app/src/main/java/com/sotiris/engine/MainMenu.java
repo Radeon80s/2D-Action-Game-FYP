@@ -49,7 +49,6 @@ public class MainMenu extends ApplicationAdapter {
 
     // UI state
     private MenuState currentState = MenuState.MAIN;
-    private float musicVolume = 0.7f;
     private float soundVolume = 1.0f;
     public boolean Male;
 
@@ -261,17 +260,6 @@ public class MainMenu extends ApplicationAdapter {
         Label titleLabel = new Label("SETTINGS", skin, "title");
         titleLabel.setFontScale(2.0f);
 
-        // Music volume
-        Label musicLabel = new Label("Music Volume", skin);
-        Slider musicSlider = new Slider(0f, 1f, 0.1f, false, skin);
-        musicSlider.setValue(musicVolume);
-        musicSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                musicVolume = musicSlider.getValue();
-            }
-        });
-
         // Sound effects
         Label soundLabel = new Label("Sound Effects", skin);
         Slider soundSlider = new Slider(0f, 1f, 0.1f, false, skin);
@@ -298,9 +286,6 @@ public class MainMenu extends ApplicationAdapter {
 
         // Add elements to table
         rootTable.add(titleLabel).colspan(2).padBottom(50f).row();
-
-        rootTable.add(musicLabel).width(150f).align(Align.left).padRight(20f);
-        rootTable.add(musicSlider).width(250f).padBottom(30f).row();
 
         rootTable.add(soundLabel).width(150f).align(Align.left).padRight(20f);
         rootTable.add(soundSlider).width(250f).padBottom(30f).row();
