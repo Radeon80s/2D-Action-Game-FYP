@@ -54,9 +54,6 @@ import com.sotiris.engine.utils.MySpatializedSoundPlayer;
 import com.sotiris.engine.ui.PieMenuManager;
 
 import games.spooky.gdx.sfx.Effects;
-import games.spooky.gdx.sfx.SfxMusic;
-import games.spooky.gdx.sfx.SfxMusicLoader;
-import games.spooky.gdx.sfx.SfxMusicPlaylist;
 import games.spooky.gdx.sfx.SfxSound;
 import games.spooky.gdx.sfx.SfxSoundLoader;
 import games.spooky.gdx.sfx.spatial.SomeSoundSpatializer2;
@@ -76,7 +73,6 @@ public class Demo extends ApplicationAdapter {
 
     private GameState currentGameState;
     private AssetManager assetManager;
-    private SfxMusicPlaylist musicPlayer;
     private MySpatializedSoundPlayer<Vector2> soundPlayer;
     private SomeSoundSpatializer2 spatializer;
     private Skin skin;
@@ -128,7 +124,6 @@ public class Demo extends ApplicationAdapter {
         batch = new SpriteBatch();
 
         assetManager = new AssetManager(new InternalFileHandleResolver());
-        assetManager.setLoader(SfxMusic.class, new SfxMusicLoader(new InternalFileHandleResolver()));
         assetManager.setLoader(SfxSound.class, new SfxSoundLoader(new InternalFileHandleResolver()));
         assetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
 
@@ -770,7 +765,6 @@ public class Demo extends ApplicationAdapter {
         if (rifleTexture != null) rifleTexture.dispose();
         if (world != null) world.dispose();
         if (pieMenuManager != null) pieMenuManager.dispose();
-        //         if (musicPlayer != null) musicPlayer.dispose();
         if (soundPlayer != null) {
             soundPlayer.stop();
         }

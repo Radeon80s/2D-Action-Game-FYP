@@ -78,7 +78,7 @@ This project is a 2D top-down action game developed for Android devices using th
 - **Virtual Joystick**: Touch-based movement control
 - **PieMenu Weapon Selection**: Radial menu for quick weapon switching
 - **Cutscene System**: Intro and outro sequences with animated characters and typewriter text
-- **Main Menu**: Settings for audio volume and character gender selection
+- **Main Menu**: Settings for sound effects volume and character gender selection
 
 ---
 
@@ -142,7 +142,7 @@ GameEngine/
 │       ├── female/                      # Female character sprites (8 directions)
 │       ├── enemy/                       # Enemy sprites & animations
 │       ├── cars/                        # Vehicle sprites
-│       ├── sounds/                      # Audio files (SFX & music)
+│       ├── sounds/                      # Sound effect files
 │       └── skin/                        # UI skin assets
 │
 ├── build.gradle.kts                     # Root build configuration

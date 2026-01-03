@@ -3,6 +3,10 @@
 *.ap_
 *.aab
 
+# Script and text files
+*.ps1
+*.txt
+
 # Files for the Dalvik VM
 *.dex
 
