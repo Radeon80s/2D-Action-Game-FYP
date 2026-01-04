@@ -105,7 +105,7 @@ This project is a 2D top-down action game developed for Android devices using th
 | gdx-sfx | 3.0.0 | Spatial/3D positional audio | [spookygames/gdx-sfx](https://github.com/spookygames/gdx-sfx) |
 | gdx-vfx | 0.5.4 | Post-processing visual effects | [crashinvaders/gdx-vfx](https://github.com/crashinvaders/gdx-vfx) |
 | PieMenu | 5.0.0 | Radial menu UI component | [payne911/PieMenu](https://github.com/payne911/PieMenu) |
-| Box2D | 1.12.1 | 2D physics engine | [libgdx/libgdx](https://github.com/libgdx/libgdx/wiki/Box2d) |
+| Box2D | 1.12.1 | 2D physics engine | [box2d.org](https://box2d.org/documentation/) |
 
 ---
 
