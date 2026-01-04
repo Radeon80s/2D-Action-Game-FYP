@@ -36,6 +36,7 @@ public class WaveManager {
 
     private final int[] waveEnemies = {5, 4, 1, 2, 1, 4, 5};
     private int currentWave = 0;
+    private int wavesFullySpawned = 0;
     private int activeEnemies = 0;
 
     private final Stage gameStage;
@@ -82,6 +83,7 @@ public class WaveManager {
             waveSpawnTask = null;
         }
         currentWave = 0;
+        wavesFullySpawned = 0;
         activeEnemies = 0;
         cars.clear();
         carSpawnPoints.clear();
@@ -189,6 +191,8 @@ public class WaveManager {
                 spawnedPositions.add(spawnPos);
             }
         }
+
+        wavesFullySpawned++;
     }
 
     private Vector2 findValidSpawnPosition(float carX, float carY, float initialGap,
@@ -249,7 +253,7 @@ public class WaveManager {
         Enemy enemy = new Enemy(assetManager, spawnPos.x, spawnPos.y, player, collisionManager, world, bulletPool);
         enemy.setOnDeath(() -> {
             activeEnemies--;
-            if (activeEnemies == 0 && currentWave >= waveEnemies.length) {
+            if (activeEnemies == 0 && wavesFullySpawned >= waveEnemies.length) {
                 if (waveCallback != null) {
                     waveCallback.onAllWavesComplete();
                 }
