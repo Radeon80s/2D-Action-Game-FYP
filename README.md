@@ -6,7 +6,12 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 
 ## Game Assets Preview
 
-### Player Character (8-Directional Animation)
+### Player Character Animations
+| Male Character | Female Character |
+|:--------------:|:----------------:|
+| <img src="docs/assets/male.gif" width="150"> | <img src="docs/assets/female.gif" width="150"> |
+
+### Player Spritesheets (8-Directional)
 | Idle | Walking | Shooting |
 |:----:|:-------:|:--------:|
 | ![Idle](app/src/main/assets/male/idle.png) | ![Walk](app/src/main/assets/male/walk.png) | ![Shoot](app/src/main/assets/male/Shooting.png) |
@@ -22,9 +27,9 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 | ![Bullet](app/src/main/assets/bullet.png) | ![Spear](app/src/main/assets/male/attack_spear.png) | ![Blood](app/src/main/assets/gore.png) |
 
 ### Environment
-| Tileset | Car |
-|:-------:|:---:|
-| ![Tileset](app/src/main/assets/maps/Tileset.png) | ![Car](app/src/main/assets/cars/car.png) |
+| Tileset | Dynamic Car | Static Cars |
+|:-------:|:-----------:|:-----------:|
+| ![Tileset](app/src/main/assets/maps/Tileset.png) | ![Car](app/src/main/assets/cars/car.png) | ![Car1](app/src/main/assets/cars/carstatic_0.png) ![Car2](app/src/main/assets/cars/carstatic_3.png) ![Car3](app/src/main/assets/cars/carstatic_7.png) |
 
 ---
 
