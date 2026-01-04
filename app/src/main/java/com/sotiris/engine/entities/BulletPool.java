@@ -29,8 +29,8 @@ public class BulletPool extends Pool<Bullet> {
         Bullet bullet = obtain();
         bullet.setPosition(new Vector2(x, y));
         bullet.setVelocity(velocity);
-        bullet.setOwner(owner); // Assume a setOwner method is added in Bullet
-        bullet.setDamage(damage); // Assume a setDamage method is added in Bullet
+        bullet.setOwner(owner);
+        bullet.setDamage(damage);
         bullet.setActive(true); // Mark the bullet as active
         stage.addActor(bullet); // Add bullet to the stage so it can be drawn and updated
         return bullet;
