@@ -552,6 +552,9 @@ public class Demo extends ApplicationAdapter {
         resetPlayer();
         setInputProcessing();
         currentGameState = GameState.PLAYING;
+
+        // Start waves directly - player already saw the intro cutscene
+        waveManager.startWaves();
     }
 
     private void setInputProcessing() {

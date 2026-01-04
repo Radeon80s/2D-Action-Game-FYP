@@ -242,15 +242,25 @@ public class CutsceneManager {
     }
 
     /**
-     * Resets all cutscene state for game restart
+     * Resets all cutscene state for game restart.
+     * Preserves startCutsceneTriggered so player doesn't replay intro on restart.
      */
     public void reset() {
-        startCutsceneTriggered = false;
+        // Don't reset startCutsceneTriggered - player already saw the intro
         endCutsceneTriggered = false;
         followCutsceneCharacter = false;
         isTransitioning = false;
         targetZoom = 1.0f;
         cutsceneCharacter = null;
+    }
+
+    /**
+     * Full reset including start cutscene state.
+     * Use this when starting a completely new game session.
+     */
+    public void fullReset() {
+        startCutsceneTriggered = false;
+        reset();
     }
 
     private float mapWidth() {
