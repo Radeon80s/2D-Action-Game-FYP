@@ -16,21 +16,6 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 |:----:|:-------:|:--------:|
 | ![Idle](app/src/main/assets/male/idle.png) | ![Walk](app/src/main/assets/male/walk.png) | ![Shoot](app/src/main/assets/male/Shooting.png) |
 
-### Enemy Character
-| Idle | Walking | Attack |
-|:----:|:-------:|:------:|
-| ![Enemy Idle](app/src/main/assets/enemy/enemy_idle.png) | ![Enemy Walk](app/src/main/assets/enemy/enemy_walk_gun.png) | ![Enemy Shoot](app/src/main/assets/enemy/enemy_shoot.png) |
-
-### Weapons & Items
-| Bullet | Spear Attack | Blood Effect |
-|:------:|:------------:|:------------:|
-| ![Bullet](app/src/main/assets/bullet.png) | ![Spear](app/src/main/assets/male/attack_spear.png) | ![Blood](app/src/main/assets/gore.png) |
-
-### Environment
-| Tileset | Dynamic Car | Static Cars |
-|:-------:|:-----------:|:-----------:|
-| ![Tileset](app/src/main/assets/maps/Tileset.png) | ![Car](app/src/main/assets/cars/car.png) | ![Car1](app/src/main/assets/cars/carstatic_0.png) ![Car2](app/src/main/assets/cars/carstatic_3.png) ![Car3](app/src/main/assets/cars/carstatic_7.png) |
-
 ---
 
 ## Screenshots
