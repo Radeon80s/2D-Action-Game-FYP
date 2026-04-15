@@ -17,7 +17,6 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 > **Purchase from:**
 > - [Sscary - The Adventurer Male](https://sscary.itch.io/the-adventurer-male) → `app/src/main/assets/male/`
 > - [Sscary - The Adventurer Female](https://sscary.itch.io/the-adventurer-female) → `app/src/main/assets/female/`
-> - [Game Gland - Zombie Apocalypse Spritesheet](https://gamegland.itch.io/zombie-apocalypse-character-spritesheet) → `app/src/main/assets/enemy/`
 
 ## Screenshots
 
