@@ -12,10 +12,7 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 | <img src="docs/assets/male.gif" width="150"> | <img src="docs/assets/female.gif" width="150"> |
 
 ### Player Spritesheets (8-Directional)
-| Idle | Walking | Shooting |
-|:----:|:-------:|:--------:|
-| ![Idle](app/src/main/assets/male/idle.png) | ![Walk](app/src/main/assets/male/walk.png) | ![Shoot](app/src/main/assets/male/Shooting.png) |
-
+> ⚠️ **Note:** Player and enemy sprites are not included in this repository. Purchase them from [Sscary on itch.io](https://sscary.itch.io/) and place in `app/src/main/assets/male/` and `female/`. 
 ---
 
 ## Screenshots
