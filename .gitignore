@@ -120,3 +120,5 @@ scrcpy-win64-v3.3.3/
 *.pdf
 app/src/main/assets/male/
 app/src/main/assets/female/
+app/src/main/assets/male/
+app/src/main/assets/female/
