@@ -118,3 +118,5 @@ scrcpy-win64-v3.3.3/
 *.pptx
 *.ppt
 *.pdf
+app/src/main/assets/male/
+app/src/main/assets/female/
