@@ -11,9 +11,13 @@ A wave-based 2D action game built with LibGDX framework for Android, featuring s
 |:--------------:|:----------------:|
 | <img src="docs/assets/male.gif" width="150"> | <img src="docs/assets/female.gif" width="150"> |
 
-### Player Spritesheets (8-Directional)
-> ⚠️ **Note:** Player and enemy sprites are not included in this repository. Purchase them from [Sscary on itch.io](https://sscary.itch.io/) and place in `app/src/main/assets/male/` and `female/`. 
----
+### Player & Enemy Spritesheets
+> ⚠️ **Note:** Player and enemy sprites are not included in this repository due to licensing.
+>
+> **Purchase from:**
+> - [Sscary - The Adventurer Male](https://sscary.itch.io/the-adventurer-male) → `app/src/main/assets/male/`
+> - [Sscary - The Adventurer Female](https://sscary.itch.io/the-adventurer-female) → `app/src/main/assets/female/`
+> - [Game Gland - Zombie Apocalypse Spritesheet](https://gamegland.itch.io/zombie-apocalypse-character-spritesheet) → `app/src/main/assets/enemy/`
 
 ## Screenshots
 
